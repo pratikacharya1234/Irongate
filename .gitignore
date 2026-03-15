@@ -1,3 +1,14 @@
+# IDE & Editor
+.vscode/
+.vscode/*
+!.vscode/extensions.json
+*.code-workspace
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
 # Environment files
 .env
 **/.env
