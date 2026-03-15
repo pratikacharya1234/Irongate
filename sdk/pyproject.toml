@@ -1,10 +1,26 @@
 [project]
 name = "irongate"
-version = "0.0.1"
+version = "0.0.2"
 description = "Deterministic runtime security layer for AI agents. Enforces policies for file access, network requests, process execution, and tool invocation."
 authors = [ { name = "Pratik Acharya", email = "pratikacharya468@gmail.com" } ]
 readme = "README.md"
 requires-python = ">=3.8"
+license = { text = "MIT" }
+keywords = ["security", "python", "ai", "agent", "policy-enforcement", "sandbox", "runtime-protection"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Security",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
 dependencies = [
     "fastapi>=0.85",
     "uvicorn>=0.18",
@@ -12,6 +28,11 @@ dependencies = [
     "jsonschema>=4.0",
     "pydantic>=2.0"
 ]
+
+[project.urls]
+repository = "https://github.com/pratikacharya1234/Irongate"
+documentation = "https://github.com/pratikacharya1234/Irongate#readme"
+issues = "https://github.com/pratikacharya1234/Irongate/issues"
 
 [project.optional-dependencies]
 dev = [
