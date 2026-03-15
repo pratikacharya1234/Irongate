@@ -1,0 +1,34 @@
+[project]
+name = "irongate"
+version = "0.0.1"
+description = "Deterministic runtime security layer for AI agents. Enforces policies for file access, network requests, process execution, and tool invocation."
+authors = [ { name = "Pratik Acharya", email = "pratikacharya468@gmail.com" } ]
+readme = "README.md"
+requires-python = ">=3.8"
+dependencies = [
+    "fastapi>=0.85",
+    "uvicorn>=0.18",
+    "requests>=2.0",
+    "jsonschema>=4.0",
+    "pydantic>=2.0"
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-asyncio>=0.21",
+    "pytest-cov>=4.0"
+]
+
+[project.scripts]
+irongate = "agentshield.cli:main"
+
+[tool.setuptools]
+packages = ["agentshield", "agentshield.integrations"]
+
+[tool.setuptools.package-data]
+agentshield = ["default_policy.json", "static/*"]
+
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"

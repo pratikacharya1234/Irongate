@@ -1,0 +1,83 @@
+{
+  "version": 1,
+  "rules": [
+    {
+      "type": "credential",
+      "decision": "block",
+      "reason": "Block all credential exfiltration"
+    },
+    {
+      "type": "file",
+      "path_contains": [".env", ".ssh/", "id_rsa", "id_dsa", ".aws/credentials", ".aws/config", ".gcp", ".azure", "credentials.json", "secret", "token", "credential", ".pem", ".key"],
+      "decision": "review",
+      "reason": "Sensitive file access requires approval"
+    },
+    {
+      "type": "file",
+      "path_contains": ["/etc/passwd", "/etc/shadow", "C:\\Windows\\System32", "/boot"],
+      "decision": "block",
+      "reason": "System-critical files blocked"
+    },
+    {
+      "type": "file",
+      "subtype": "delete",
+      "decision": "review",
+      "reason": "All file deletes require approval"
+    },
+    {
+      "type": "file",
+      "subtype": "rename",
+      "decision": "review",
+      "reason": "All file renames require approval"
+    },
+    {
+      "type": "network",
+      "subtype": "http",
+      "target_pattern": "https?://(api|service|webhook)-",
+      "decision": "review",
+      "reason": "External API calls require approval"
+    },
+    {
+      "type": "network",
+      "target_contains": ["payment", "stripe", "paypal", "checkout"],
+      "decision": "review",
+      "reason": "Payment API calls require approval"
+    },
+    {
+      "type": "network",
+      "subtype": "socket",
+      "decision": "review",
+      "reason": "Raw socket connections require approval"
+    },
+    {
+      "type": "process",
+      "cmd_contains": ["rm -rf", "dd if=/dev", "shutdown", "reboot", "halt", ":(){:|:&};:"],
+      "decision": "block",
+      "reason": "Dangerous system commands blocked"
+    },
+    {
+      "type": "tool",
+      "tool_name": "execute_arbitrary_code",
+      "decision": "block",
+      "reason": "Arbitrary code execution tool blocked"
+    },
+    {
+      "type": "tool",
+      "tool_name_contains": ["delete", "drop", "wipe", "format"],
+      "decision": "review",
+      "reason": "Destructive tools require approval"
+    },
+    {
+      "decision": "block",
+      "reason": "default_deny"
+    }
+  ],
+  "legacy_settings": {
+    "block_sensitive_files": [".env", "id_rsa", "id_rsa.pub", ".ssh", "secrets"],
+    "blocked_domains": [],
+    "max_payment": 0,
+    "require_approval": ["delete_file", "external_upload", "process_execution"]
+  },
+  "approval_timeout_seconds": 300,
+  "audit_retention_days": 90
+}

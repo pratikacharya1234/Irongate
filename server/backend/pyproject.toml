@@ -1,0 +1,14 @@
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["app/tests"]
+python_files = "test_*.py"
+python_classes = "Test*"
+python_functions = "test_*"
+addopts = "-v --cov=app --cov-report=term-missing --cov-report=html"
+filterwarnings = ["ignore::DeprecationWarning"]
+
+[tool.pyright]
+include = ["app"]
+pythonPath = "."
+venvPath = "."
+venv = ".venv"

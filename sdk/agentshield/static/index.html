@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token }}">
+    <title>AgentShield Dashboard</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: #2563eb;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+        .header p {
+            margin: 5px 0 0 0;
+            opacity: 0.9;
+            font-size: 14px;
+        }
+        .nav {
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+            padding: 0;
+        }
+        .nav-tabs {
+            display: flex;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+        .nav-tab {
+            padding: 12px 20px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+        }
+        .nav-tab.active {
+            background: white;
+            border-bottom-color: #2563eb;
+            color: #2563eb;
+            font-weight: 500;
+        }
+        .nav-tab:hover {
+            background: #e9ecef;
+        }
+        .tab-content {
+            padding: 20px;
+        }
+        .tab-pane {
+            display: none;
+        }
+        .tab-pane.active {
+            display: block;
+        }
+        .events-list {
+            max-height: 600px;
+            overflow-y: auto;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+        }
+        .event-item {
+            padding: 15px;
+            border-bottom: 1px solid #f8f9fa;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .event-item:last-child {
+            border-bottom: none;
+        }
+        .event-info {
+            flex: 1;
+        }
+        .event-type {
+            font-weight: 500;
+            color: #2563eb;
+            text-transform: uppercase;
+            font-size: 12px;
+            margin-bottom: 4px;
+        }
+        .event-details {
+            color: #666;
+            font-size: 14px;
+        }
+        .event-decision {
+            font-weight: 500;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            text-transform: uppercase;
+        }
+        .decision-allow { background: #d1fae5; color: #065f46; }
+        .decision-block { background: #fee2e2; color: #991b1b; }
+        .decision-review { background: #fef3c7; color: #92400e; }
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.2s;
+        }
+        .btn-primary { background: #2563eb; color: white; }
+        .btn-primary:hover { background: #1d4ed8; }
+        .btn-success { background: #059669; color: white; }
+        .btn-success:hover { background: #047857; }
+        .btn-danger { background: #dc2626; color: white; }
+        .btn-danger:hover { background: #b91c1c; }
+        .btn-secondary { background: #6b7280; color: white; }
+        .btn-secondary:hover { background: #4b5563; }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        .form-group input, .form-group textarea, .form-group select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        .actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+        }
+        .status.success { background: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; }
+        .status.error { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+        .status.info { background: #dbeafe; color: #1e40af; border: 1px solid #93c5fd; }
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+        .empty {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        .policy-json {
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+            padding: 15px;
+            white-space: pre-wrap;
+            font-size: 12px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>AgentShield Dashboard</h1>
+            <p>Deterministic runtime security for Python AI agents</p>
+        </div>
+
+        <nav class="nav">
+            <ul class="nav-tabs">
+                <li class="nav-tab active" data-tab="events">Events</li>
+                <li class="nav-tab" data-tab="approvals">Approvals</li>
+                <li class="nav-tab" data-tab="policy">Policy</li>
+                <li class="nav-tab" data-tab="status">Status</li>
+            </ul>
+        </nav>
+
+        <div class="tab-content">
+            <!-- Events Tab -->
+            <div id="events" class="tab-pane active">
+                <h2>Recent Events</h2>
+                <div class="actions">
+                    <button class="btn btn-primary" onclick="loadEvents()">Refresh</button>
+                    <button class="btn btn-secondary" onclick="clearEvents()">Clear Events</button>
+                </div>
+                <div id="events-container" class="events-list">
+                    <div class="loading">Loading events...</div>
+                </div>
+            </div>
+
+            <!-- Approvals Tab -->
+            <div id="approvals" class="tab-pane">
+                <h2>Pending Approvals</h2>
+                <div class="actions">
+                    <button class="btn btn-primary" onclick="loadApprovals()">Refresh</button>
+                </div>
+                <div id="approvals-container">
+                    <div class="loading">Loading pending approvals...</div>
+                </div>
+            </div>
+
+            <!-- Policy Tab -->
+            <div id="policy" class="tab-pane">
+                <h2>Current Policy</h2>
+                <div class="actions">
+                    <button class="btn btn-primary" onclick="loadPolicy()">Refresh</button>
+                    <button class="btn btn-secondary" onclick="editPolicy()">Edit Policy</button>
+                </div>
+                <div id="policy-container">
+                    <div class="loading">Loading policy...</div>
+                </div>
+            </div>
+
+            <!-- Status Tab -->
+            <div id="status" class="tab-pane">
+                <h2>System Status</h2>
+                <div class="actions">
+                    <button class="btn btn-primary" onclick="loadStatus()">Refresh</button>
+                </div>
+                <div id="status-container">
+                    <div class="loading">Loading system status...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Policy Modal -->
+    <div id="policy-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000;">
+        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border-radius: 8px; width: 80%; max-width: 800px; max-height: 80%; overflow-y: auto;">
+            <h3>Edit Policy</h3>
+            <div class="form-group">
+                <label for="policy-text">Policy JSON:</label>
+                <textarea id="policy-text"></textarea>
+            </div>
+            <div class="actions">
+                <button class="btn btn-success" onclick="savePolicy()">Save</button>
+                <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = window.location.origin;
+        let authToken = localStorage.getItem('agentshield_token') || '';
+
+        // Tab switching
+        document.querySelectorAll('.nav-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+                tab.classList.add('active');
+                document.getElementById(tab.dataset.tab).classList.add('active');
+            });
+        });
+
+        // API helpers
+        async function apiCall(endpoint, options = {}) {
+            const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            const headers = {
+                'Authorization': `Bearer ${authToken}`,
+                'Content-Type': 'application/json',
+                'X-CSRF-Token': csrfToken,
+                ...options.headers
+            };
+
+            try {
+                const response = await fetch(`${API_BASE}${endpoint}`, {
+                    ...options,
+                    headers
+                });
+
+                if (response.status === 401) {
+                    authToken = prompt('Enter dashboard auth token:');
+                    if (authToken) {
+                        localStorage.setItem('agentshield_token', authToken);
+                        return apiCall(endpoint, options);
+                    }
+                    throw new Error('Authentication required');
+                }
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                return await response.json();
+            } catch (error) {
+                showStatus(`Error: ${error.message}`, 'error');
+                throw error;
+            }
+        }
+
+        function showStatus(message, type = 'info') {
+            const status = document.createElement('div');
+            status.className = `status ${type}`;
+            status.textContent = message;
+            document.querySelector('.container').insertBefore(status, document.querySelector('.nav'));
+            setTimeout(() => status.remove(), 5000);
+        }
+
+        // Events
+        async function loadEvents() {
+            try {
+                const events = await apiCall('/events?limit=50');
+                const container = document.getElementById('events-container');
+
+                if (!events || events.length === 0) {
+                    container.innerHTML = '<div class="empty">No events found</div>';
+                    return;
+                }
+
+                container.innerHTML = events.map(event => `
+                    <div class="event-item">
+                        <div class="event-info">
+                            <div class="event-type">${event.action_type || 'unknown'}/${event.subtype || 'unknown'}</div>
+                            <div class="event-details">${formatEventDetails(event)}</div>
+                            <div style="font-size: 12px; color: #666; margin-top: 4px;">
+                                ${event.timestamp || ''}
+                            </div>
+                        </div>
+                        <div>
+                            <span class="event-decision decision-${event.decision || 'unknown'}">
+                                ${event.decision || 'unknown'}
+                            </span>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                document.getElementById('events-container').innerHTML =
+                    '<div class="empty">Failed to load events</div>';
+            }
+        }
+
+        function formatEventDetails(event) {
+            const details = [];
+            if (event.path) details.push(`Path: ${event.path}`);
+            if (event.cmd) details.push(`Command: ${event.cmd}`);
+            if (event.target) details.push(`Target: ${event.target}`);
+            if (event.tool_name) details.push(`Tool: ${event.tool_name}`);
+            if (event.reason) details.push(`Reason: ${event.reason}`);
+            return details.join(' • ') || 'No details';
+        }
+
+        async function clearEvents() {
+            if (!confirm('Are you sure you want to clear all events?')) return;
+            try {
+                await apiCall('/events', { method: 'DELETE' });
+                showStatus('Events cleared successfully', 'success');
+                loadEvents();
+            } catch (error) {
+                // Error already shown
+            }
+        }
+
+        // Approvals
+        async function loadApprovals() {
+            try {
+                const approvals = await apiCall('/approvals');
+                const container = document.getElementById('approvals-container');
+
+                if (!approvals || approvals.length === 0) {
+                    container.innerHTML = '<div class="empty">No pending approvals</div>';
+                    return;
+                }
+
+                container.innerHTML = approvals.map(approval => `
+                    <div class="event-item">
+                        <div class="event-info">
+                            <div class="event-type">${approval.action_type || 'unknown'}/${approval.subtype || 'unknown'}</div>
+                            <div class="event-details">${formatEventDetails(approval)}</div>
+                            <div style="font-size: 12px; color: #666; margin-top: 4px;">
+                                ${approval.timestamp || ''}
+                            </div>
+                        </div>
+                        <div>
+                            <button class="btn btn-success" onclick="approveAction(${approval.id})">Approve</button>
+                            <button class="btn btn-danger" onclick="blockAction(${approval.id})">Block</button>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                document.getElementById('approvals-container').innerHTML =
+                    '<div class="empty">Failed to load approvals</div>';
+            }
+        }
+
+        async function approveAction(id) {
+            try {
+                await apiCall('/approve', {
+                    method: 'POST',
+                    body: JSON.stringify({ event_id: id, decision: 'allow' })
+                });
+                showStatus('Action approved', 'success');
+                loadApprovals();
+                loadEvents();
+            } catch (error) {
+                // Error already shown
+            }
+        }
+
+        async function blockAction(id) {
+            try {
+                await apiCall('/block', {
+                    method: 'POST',
+                    body: JSON.stringify({ event_id: id, decision: 'block' })
+                });
+                showStatus('Action blocked', 'success');
+                loadApprovals();
+                loadEvents();
+            } catch (error) {
+                // Error already shown
+            }
+        }
+
+        // Policy
+        async function loadPolicy() {
+            try {
+                const data = await apiCall('/policy');
+                document.getElementById('policy-container').innerHTML = `
+                    <div class="policy-json">${JSON.stringify(data, null, 2)}</div>
+                `;
+            } catch (error) {
+                document.getElementById('policy-container').innerHTML =
+                    '<div class="empty">Failed to load policy</div>';
+            }
+        }
+
+        function editPolicy() {
+            const policyJson = document.querySelector('.policy-json');
+            if (policyJson) {
+                document.getElementById('policy-text').value = policyJson.textContent;
+                document.getElementById('policy-modal').style.display = 'block';
+            }
+        }
+
+        async function savePolicy() {
+            try {
+                const policyText = document.getElementById('policy-text').value;
+                const policy = JSON.parse(policyText);
+                await apiCall('/policy', {
+                    method: 'PUT',
+                    body: JSON.stringify({ policy })
+                });
+                showStatus('Policy updated successfully', 'success');
+                closeModal();
+                loadPolicy();
+            } catch (error) {
+                showStatus('Failed to save policy: ' + error.message, 'error');
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('policy-modal').style.display = 'none';
+        }
+
+        // Status
+        async function loadStatus() {
+            try {
+                const data = await apiCall('/status');
+                document.getElementById('status-container').innerHTML = `
+                    <div class="status info">
+                        <strong>Status:</strong> ${data.status || 'unknown'}
+                    </div>
+                    <p><strong>Server:</strong> ${window.location.origin}</p>
+                    <p><strong>Auth:</strong> ${data.auth || 'bearer token'}</p>
+                    <p><strong>Storage:</strong> ${data.storage || 'SQLite'}</p>
+                    <p><strong>Policy Engine:</strong> ${data.policy_engine || 'unknown'}</p>
+                `;
+            } catch (error) {
+                document.getElementById('status-container').innerHTML =
+                    '<div class="status error">Failed to load status</div>';
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            loadEvents();
+            loadStatus();
+        });
+    </script>
+</body>
+</html>

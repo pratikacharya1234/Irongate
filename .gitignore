@@ -1,0 +1,39 @@
+# Environment files
+.env
+**/.env
+*.env.local
+**/*.env.local
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+*.egg
+.venv/
+venv/
+htmlcov/
+.pytest_cache/
+.coverage
+.mypy_cache/
+.ruff_cache/
+dist/
+
+# Node
+node_modules/
+
+# Data / logs
+data/
+logs/
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+*.log
+coverage/
+
+# OS
+.DS_Store
+
+# Build artifacts
+frontend/build/
